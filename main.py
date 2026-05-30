@@ -1,17 +1,15 @@
 """
 関西学院千里国際中等部 編入チャレンジ — バックエンド
-FastAPI + Anthropic SDK。Cloud Run で動かす想定。
-APIキーは環境変数 ANTHROPIC_API_KEY から読み込む（コードには書かない）。
+FastAPI + Anthropic SDK。Render で動かす想定。
+- APIキーは環境変数 ANTHROPIC_API_KEY から読み込む（コードには書かない）。
+- 採点・面接の履歴は、環境変数 SHEET_WEBHOOK_URL を設定すると
+  Google スプレッドシートに自動で1行ずつ記録される（任意）。
 """
 import os
 import json
 import random
-import ssl
-import smtplib
 import datetime
 import urllib.request
-from email.mime.text import MIMEText
-from email.header import Header
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -22,15 +20,9 @@ from anthropic import Anthropic
 MODEL = os.environ.get("MODEL", "claude-sonnet-4-6")
 MAX_TOKENS = 1024
 
-# ---------- メール送信（履歴ログ用・任意） ----------
-# Gmail で送る。未設定なら何も送らない（＝アプリは通常どおり動く）。
-GMAIL_ADDRESS = os.environ.get("GMAIL_ADDRESS", "")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-LOG_EMAIL_TO = os.environ.get("LOG_EMAIL_TO", "") or GMAIL_ADDRESS
-LOG_EMAIL_CC = os.environ.get("LOG_EMAIL_CC", "")  # 任意：奥様など別アドレスにもCCで届ける
-
 # ---------- スプレッドシート記録（履歴ログ用・任意） ----------
 # Google Apps Script のウェブアプリURL。HTTPSなので Render でも確実に動く。
+# 未設定なら何も記録しない（＝アプリは通常どおり動く）。
 SHEET_WEBHOOK_URL = os.environ.get("SHEET_WEBHOOK_URL", "")
 
 JST = datetime.timezone(datetime.timedelta(hours=9))
@@ -38,39 +30,6 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 
 def now_jst() -> str:
     return datetime.datetime.now(JST).strftime("%Y-%m-%d %H:%M")
-
-
-def _split_addrs(value: str) -> list:
-    # カンマ区切りで複数アドレス可（例: "a@x.com, b@y.com"）
-    return [a.strip() for a in value.replace(";", ",").split(",") if a.strip()]
-
-
-def send_log_email(subject: str, text: str, raise_errors: bool = False) -> None:
-    """採点/面接の履歴をメールで送る。失敗してもアプリ本体は止めない。"""
-    to_list = _split_addrs(LOG_EMAIL_TO)
-    cc_list = _split_addrs(LOG_EMAIL_CC)
-    if not (GMAIL_ADDRESS and GMAIL_APP_PASSWORD and to_list):
-        msg = "メール設定が未完了です（GMAIL_ADDRESS / GMAIL_APP_PASSWORD / LOG_EMAIL_TO のいずれかが空）"
-        print(f"[mail] {msg}", flush=True)
-        if raise_errors:
-            raise RuntimeError(msg)
-        return
-    try:
-        m = MIMEText(text, "plain", "utf-8")
-        m["Subject"] = str(Header(subject, "utf-8"))
-        m["From"] = GMAIL_ADDRESS
-        m["To"] = ", ".join(to_list)
-        if cc_list:
-            m["Cc"] = ", ".join(cc_list)
-        ctx = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=20) as s:
-            s.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
-            s.sendmail(GMAIL_ADDRESS, to_list + cc_list, m.as_string())
-        print(f"[mail] 送信成功 → to={to_list} cc={cc_list}", flush=True)
-    except Exception as e:
-        print(f"[mail] 送信失敗: {type(e).__name__}: {e}", flush=True)
-        if raise_errors:
-            raise
 
 
 def send_to_sheet(payload: dict, raise_errors: bool = False) -> None:
@@ -218,33 +177,6 @@ def gen_prompt(r: PromptReq):
             else "Connect the theme to your own experience in the opening."}
 
 
-def _score_email(r: "ScoreReq", j: dict) -> tuple[str, str]:
-    ptype = "イエスノー型" if r.ptype == "yn" else "名言型"
-    lang = "英語" if r.lang == "en" else "日本語"
-    subject = f"【小論文 {j.get('grade','')} {j.get('total','')}点】{r.prompt[:24]}"
-    lines = [
-        f"■ 小論文道場  {now_jst()}",
-        f"形式: {ptype}／言語: {lang}",
-        "",
-        f"【お題】\n{r.prompt}" + (f"（{r.author}）" if r.author else ""),
-        "",
-        f"【息子さんの回答】\n{r.answer}",
-        "",
-        f"【採点】 {j.get('grade','')}  {j.get('total','')}点 / 100",
-    ]
-    if j.get("overall"):
-        lines.append(f"総評: {j['overall']}")
-    for ax in j.get("axes", []):
-        lines.append(f"  ・{ax.get('name','')}: {ax.get('score','')}/{ax.get('max','')} — {ax.get('comment','')}")
-    if j.get("good"):
-        lines.append("良い点: " + " / ".join(j["good"]))
-    if j.get("improve"):
-        lines.append("改善点: " + " / ".join(j["improve"]))
-    if j.get("rewrite_intro"):
-        lines.append(f"書き出し例: {j['rewrite_intro']}")
-    return subject, "\n".join(lines)
-
-
 @app.post("/api/score")
 def score(r: ScoreReq, background_tasks: BackgroundTasks):
     ptype = "イエスノー型" if r.ptype == "yn" else "名言型"
@@ -272,8 +204,6 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
         raise HTTPException(502, "採点結果を解釈できませんでした。もう一度お試しください。")
     if not j.get("grade"):
         j["grade"] = grade_from(int(j["total"]))
-    subject, body = _score_email(r, j)
-    background_tasks.add_task(send_log_email, subject, body)
     axes_txt = " / ".join(f"{a.get('name','')}{a.get('score','')}/{a.get('max','')}" for a in j.get("axes", []))
     detail = axes_txt
     if j.get("good"):
@@ -292,31 +222,6 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
         "detail": detail,
     })
     return j
-
-
-def _interview_email(r: "InterviewReq", j: dict) -> tuple[str, str]:
-    question = ""
-    answer = ""
-    for t in r.history:
-        if t.role == "q":
-            question = t.text
-        elif t.role == "a":
-            answer = t.text
-    lang = {"en": "英語", "mix": "ミックス"}.get(r.lang, "日本語")
-    subject = f"【面接 {j.get('grade','')} {j.get('score','')}点】{question[:24]}"
-    lines = [
-        f"■ 面接シミュレーター  {now_jst()}",
-        f"言語: {lang}／{r.qcount}問目",
-        "",
-        f"【質問】\n{question}",
-        "",
-        f"【息子さんの回答】\n{answer}",
-        "",
-        f"【採点】 {j.get('grade','')}  {j.get('score','')}点 / 100",
-    ]
-    if j.get("feedback"):
-        lines.append(f"アドバイス: {j['feedback']}")
-    return subject, "\n".join(lines)
 
 
 @app.post("/api/interview")
@@ -349,10 +254,8 @@ def interview(r: InterviewReq, background_tasks: BackgroundTasks):
         raise HTTPException(502, "面接の応答を解釈できませんでした。")
     if not j.get("grade"):
         j["grade"] = grade_from(int(j.get("score", 0)))
-    # 「start」は挨拶のみで採点がないので記録しない。回答があったときだけ送る。
+    # 「start」は挨拶のみで採点がないので記録しない。回答があったときだけ記録する。
     if r.action == "answer":
-        subject, body = _interview_email(r, j)
-        background_tasks.add_task(send_log_email, subject, body)
         question = answer = ""
         for t in r.history:
             if t.role == "q":
@@ -376,41 +279,6 @@ def interview(r: InterviewReq, background_tasks: BackgroundTasks):
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "model": MODEL}
-
-
-@app.get("/api/_mailtest")
-def mailtest():
-    """メール設定の診断用（一時的）。実際に1通送ってみて、結果と原因を返す。"""
-    cfg = {
-        "GMAIL_ADDRESS_set": bool(GMAIL_ADDRESS),
-        "GMAIL_APP_PASSWORD_set": bool(GMAIL_APP_PASSWORD),
-        "GMAIL_APP_PASSWORD_len": len(GMAIL_APP_PASSWORD),
-        "GMAIL_APP_PASSWORD_has_space": (" " in GMAIL_APP_PASSWORD),
-        "LOG_EMAIL_TO_count": len(_split_addrs(LOG_EMAIL_TO)),
-        "LOG_EMAIL_CC_count": len(_split_addrs(LOG_EMAIL_CC)),
-    }
-    try:
-        send_log_email("【テスト】メール設定の確認",
-                       "これは編入チャレンジのメール設定が正しいか確認するテスト送信です。",
-                       raise_errors=True)
-        return {"ok": True, "config": cfg}
-    except Exception as e:
-        return {"ok": False, "error": f"{type(e).__name__}: {e}", "config": cfg}
-
-
-@app.get("/api/_sheettest")
-def sheettest():
-    """スプレッドシート設定の診断用（一時的）。テスト行を1行追記してみて結果を返す。"""
-    cfg = {"SHEET_WEBHOOK_URL_set": bool(SHEET_WEBHOOK_URL)}
-    try:
-        send_to_sheet({
-            "datetime": now_jst(), "type": "テスト", "lang": "日本語",
-            "topic": "（接続テスト）", "answer": "これはスプレッドシート接続の確認です。",
-            "score": 0, "grade": "-", "comment": "テスト行です。削除して構いません。", "detail": "",
-        }, raise_errors=True)
-        return {"ok": True, "config": cfg}
-    except Exception as e:
-        return {"ok": False, "error": f"{type(e).__name__}: {e}", "config": cfg}
 
 
 # 静的ファイル（フロント）をルートで配信。API ルートの後に mount すること。
