@@ -9,6 +9,7 @@ import random
 import ssl
 import smtplib
 import datetime
+import urllib.request
 from email.mime.text import MIMEText
 from email.header import Header
 
@@ -27,6 +28,11 @@ GMAIL_ADDRESS = os.environ.get("GMAIL_ADDRESS", "")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 LOG_EMAIL_TO = os.environ.get("LOG_EMAIL_TO", "") or GMAIL_ADDRESS
 LOG_EMAIL_CC = os.environ.get("LOG_EMAIL_CC", "")  # 任意：奥様など別アドレスにもCCで届ける
+
+# ---------- スプレッドシート記録（履歴ログ用・任意） ----------
+# Google Apps Script のウェブアプリURL。HTTPSなので Render でも確実に動く。
+SHEET_WEBHOOK_URL = os.environ.get("SHEET_WEBHOOK_URL", "")
+
 JST = datetime.timezone(datetime.timedelta(hours=9))
 
 
@@ -63,6 +69,30 @@ def send_log_email(subject: str, text: str, raise_errors: bool = False) -> None:
         print(f"[mail] 送信成功 → to={to_list} cc={cc_list}", flush=True)
     except Exception as e:
         print(f"[mail] 送信失敗: {type(e).__name__}: {e}", flush=True)
+        if raise_errors:
+            raise
+
+
+def send_to_sheet(payload: dict, raise_errors: bool = False) -> None:
+    """採点/面接の履歴を Google スプレッドシートに1行追記する。
+    HTTPS通信なので Render の SMTP 制約に影響されない。失敗してもアプリ本体は止めない。"""
+    if not SHEET_WEBHOOK_URL:
+        msg = "SHEET_WEBHOOK_URL が未設定です"
+        print(f"[sheet] {msg}", flush=True)
+        if raise_errors:
+            raise RuntimeError(msg)
+        return
+    try:
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        req = urllib.request.Request(
+            SHEET_WEBHOOK_URL, data=data,
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            body = resp.read(300).decode("utf-8", "ignore")
+        print(f"[sheet] 記録成功: {body[:100]}", flush=True)
+    except Exception as e:
+        print(f"[sheet] 記録失敗: {type(e).__name__}: {e}", flush=True)
         if raise_errors:
             raise
 
@@ -244,6 +274,23 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
         j["grade"] = grade_from(int(j["total"]))
     subject, body = _score_email(r, j)
     background_tasks.add_task(send_log_email, subject, body)
+    axes_txt = " / ".join(f"{a.get('name','')}{a.get('score','')}/{a.get('max','')}" for a in j.get("axes", []))
+    detail = axes_txt
+    if j.get("good"):
+        detail += "｜良:" + "・".join(j["good"])
+    if j.get("improve"):
+        detail += "｜改:" + "・".join(j["improve"])
+    background_tasks.add_task(send_to_sheet, {
+        "datetime": now_jst(),
+        "type": "小論文",
+        "lang": "英語" if r.lang == "en" else "日本語",
+        "topic": (r.prompt + (f"（{r.author}）" if r.author else "")),
+        "answer": r.answer,
+        "score": j.get("total", ""),
+        "grade": j.get("grade", ""),
+        "comment": j.get("overall", ""),
+        "detail": detail,
+    })
     return j
 
 
@@ -302,10 +349,27 @@ def interview(r: InterviewReq, background_tasks: BackgroundTasks):
         raise HTTPException(502, "面接の応答を解釈できませんでした。")
     if not j.get("grade"):
         j["grade"] = grade_from(int(j.get("score", 0)))
-    # 「start」は挨拶のみで採点がないのでメールしない。回答があったときだけ送る。
+    # 「start」は挨拶のみで採点がないので記録しない。回答があったときだけ送る。
     if r.action == "answer":
         subject, body = _interview_email(r, j)
         background_tasks.add_task(send_log_email, subject, body)
+        question = answer = ""
+        for t in r.history:
+            if t.role == "q":
+                question = t.text
+            elif t.role == "a":
+                answer = t.text
+        background_tasks.add_task(send_to_sheet, {
+            "datetime": now_jst(),
+            "type": "面接",
+            "lang": {"en": "英語", "mix": "ミックス"}.get(r.lang, "日本語"),
+            "topic": question,
+            "answer": answer,
+            "score": j.get("score", ""),
+            "grade": j.get("grade", ""),
+            "comment": j.get("feedback", ""),
+            "detail": f"{r.qcount}問目",
+        })
     return j
 
 
@@ -329,6 +393,21 @@ def mailtest():
         send_log_email("【テスト】メール設定の確認",
                        "これは編入チャレンジのメール設定が正しいか確認するテスト送信です。",
                        raise_errors=True)
+        return {"ok": True, "config": cfg}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}", "config": cfg}
+
+
+@app.get("/api/_sheettest")
+def sheettest():
+    """スプレッドシート設定の診断用（一時的）。テスト行を1行追記してみて結果を返す。"""
+    cfg = {"SHEET_WEBHOOK_URL_set": bool(SHEET_WEBHOOK_URL)}
+    try:
+        send_to_sheet({
+            "datetime": now_jst(), "type": "テスト", "lang": "日本語",
+            "topic": "（接続テスト）", "answer": "これはスプレッドシート接続の確認です。",
+            "score": 0, "grade": "-", "comment": "テスト行です。削除して構いません。", "detail": "",
+        }, raise_errors=True)
         return {"ok": True, "config": cfg}
     except Exception as e:
         return {"ok": False, "error": f"{type(e).__name__}: {e}", "config": cfg}
