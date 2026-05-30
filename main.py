@@ -26,6 +26,7 @@ MAX_TOKENS = 1024
 GMAIL_ADDRESS = os.environ.get("GMAIL_ADDRESS", "")
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
 LOG_EMAIL_TO = os.environ.get("LOG_EMAIL_TO", "") or GMAIL_ADDRESS
+LOG_EMAIL_CC = os.environ.get("LOG_EMAIL_CC", "")  # 任意：奥様など別アドレスにもCCで届ける
 JST = datetime.timezone(datetime.timedelta(hours=9))
 
 
@@ -33,19 +34,28 @@ def now_jst() -> str:
     return datetime.datetime.now(JST).strftime("%Y-%m-%d %H:%M")
 
 
+def _split_addrs(value: str) -> list:
+    # カンマ区切りで複数アドレス可（例: "a@x.com, b@y.com"）
+    return [a.strip() for a in value.replace(";", ",").split(",") if a.strip()]
+
+
 def send_log_email(subject: str, text: str) -> None:
     """採点/面接の履歴をメールで送る。失敗してもアプリ本体は止めない。"""
-    if not (GMAIL_ADDRESS and GMAIL_APP_PASSWORD and LOG_EMAIL_TO):
+    to_list = _split_addrs(LOG_EMAIL_TO)
+    cc_list = _split_addrs(LOG_EMAIL_CC)
+    if not (GMAIL_ADDRESS and GMAIL_APP_PASSWORD and to_list):
         return
     try:
         msg = MIMEText(text, "plain", "utf-8")
         msg["Subject"] = str(Header(subject, "utf-8"))
         msg["From"] = GMAIL_ADDRESS
-        msg["To"] = LOG_EMAIL_TO
+        msg["To"] = ", ".join(to_list)
+        if cc_list:
+            msg["Cc"] = ", ".join(cc_list)
         ctx = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=15) as s:
             s.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
-            s.sendmail(GMAIL_ADDRESS, [LOG_EMAIL_TO], msg.as_string())
+            s.sendmail(GMAIL_ADDRESS, to_list + cc_list, msg.as_string())
     except Exception:
         pass  # ログ送信の失敗で採点・面接を止めない
 
