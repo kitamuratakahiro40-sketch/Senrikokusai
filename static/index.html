@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>編入チャレンジ｜千里国際 面接・小論文</title>
+<meta name="theme-color" content="#2E5A4E" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="apple-touch-icon" href="/icon-apple-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="編入チャレンジ" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  --bg:#F1EADB;--bg2:#E8DEC9;--card:#FCF8F0;--card2:#F6EFE0;
+  --ink:#2A2620;--muted:#857A66;--faint:#A89C84;
+  --line:#E2D7C2;--pine:#2E5A4E;--pine-d:#214136;--amber:#BE7129;--amber-l:#E29A4A;--rose:#A6452F;
+  font-family:'Zen Kaku Gothic New',-apple-system,sans-serif;color:var(--ink);
+  background:radial-gradient(1200px 600px at 80% -10%,#f6efe0 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#ece2cd 0%,transparent 55%),var(--bg);
+  min-height:100vh;-webkit-font-smoothing:antialiased;}
+.mincho{font-family:'Shippori Mincho',serif;}
+.wrap{max-width:560px;margin:0 auto;padding:0 18px calc(110px + env(safe-area-inset-bottom));}
+.head{padding:calc(26px + env(safe-area-inset-top)) 2px 14px;}
+.kicker{font-size:11px;letter-spacing:.28em;color:var(--pine);font-weight:700;}
+.title{font-size:27px;font-weight:700;margin:6px 0 2px;line-height:1.25;}
+.sub{font-size:12.5px;color:var(--muted);}
+.count{margin-top:16px;border-radius:20px;padding:20px 22px;background:linear-gradient(150deg,var(--pine),var(--pine-d));color:#F4EEDF;position:relative;overflow:hidden;box-shadow:0 18px 40px -22px rgba(33,65,54,.85);}
+.count:after{content:"";position:absolute;right:-30px;top:-30px;width:160px;height:160px;border:1px solid rgba(244,238,223,.16);border-radius:50%;}
+.count:before{content:"";position:absolute;right:14px;top:38px;width:90px;height:90px;border:1px solid rgba(244,238,223,.12);border-radius:50%;}
+.count .lab{font-size:11.5px;letter-spacing:.18em;opacity:.82;}
+.count .big{font-family:'Shippori Mincho',serif;font-size:54px;font-weight:700;line-height:1;margin:4px 0;}
+.count .big small{font-size:18px;font-weight:600;margin-left:4px;}
+.count .date{font-size:12.5px;opacity:.78;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 28px -24px rgba(42,38,32,.6);}
+.modegrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px;}
+.mode{text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:18px;background:var(--card);padding:18px 18px 16px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 10px 24px -24px rgba(42,38,32,.5);width:100%;font-family:inherit;}
+.mode:active{transform:scale(.985);}
+.mode .ic{width:46px;height:46px;flex:none;border-radius:13px;display:grid;place-items:center;font-family:'Shippori Mincho',serif;font-size:21px;font-weight:700;}
+.mode .ic.a{background:#E7EFE9;color:var(--pine);}
+.mode .ic.b{background:#F6E6D2;color:var(--amber);}
+.mode h3{margin:1px 0 3px;font-size:16.5px;font-weight:700;}
+.mode p{margin:0;font-size:12px;color:var(--muted);line-height:1.55;}
+.mode .arr{margin-left:auto;color:var(--faint);align-self:center;font-size:20px;}
+.fmt h4{font-size:12px;letter-spacing:.14em;color:var(--pine);margin:0 0 12px;font-weight:700;}
+.fmt .row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-top:1px dashed var(--line);font-size:13.5px;}
+.fmt .row:first-of-type{border-top:none;}
+.fmt .row b{font-weight:500;}
+.fmt .row span{color:var(--muted);font-size:12px;}
+.ph{padding:calc(24px + env(safe-area-inset-top)) 2px 8px;}
+.ph .k{font-size:11px;letter-spacing:.24em;color:var(--pine);font-weight:700;}
+.ph h2{font-family:'Shippori Mincho',serif;font-size:23px;font-weight:700;margin:5px 0 0;}
+.ph p{font-size:12.5px;color:var(--muted);margin:5px 0 0;line-height:1.6;}
+.seg{display:flex;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:4px;}
+.seg button{flex:1;border:none;background:transparent;padding:9px 4px;border-radius:9px;font-size:12.5px;color:var(--muted);font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+.seg button.on{background:var(--pine);color:#F4EEDF;box-shadow:0 4px 12px -6px rgba(33,65,54,.7);}
+.fieldlab{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.06em;margin:14px 0 7px;}
+.btn{width:100%;border:none;border-radius:13px;padding:14px;font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s;}
+.btn:active{transform:scale(.99);}
+.btn.pine{background:var(--pine);color:#F4EEDF;box-shadow:0 12px 26px -16px rgba(33,65,54,.9);}
+.btn.amber{background:var(--amber);color:#FCF6EA;box-shadow:0 12px 26px -16px rgba(190,113,41,.9);}
+.btn.ghost{background:transparent;color:var(--pine);border:1.5px solid var(--pine);}
+.btn:disabled{opacity:.45;cursor:default;transform:none;}
+.prompt{margin-top:14px;border-radius:16px;padding:18px;background:var(--card2);border:1px solid var(--line);}
+.prompt .tag{display:inline-block;font-size:10.5px;letter-spacing:.12em;font-weight:700;padding:4px 10px;border-radius:99px;margin-bottom:10px;}
+.prompt .tag.q{background:#E7EFE9;color:var(--pine);}
+.prompt .tag.yn{background:#F6E6D2;color:var(--amber);}
+.prompt .qt{font-family:'Shippori Mincho',serif;font-size:17.5px;line-height:1.65;font-weight:600;}
+.prompt .auth{font-size:12px;color:var(--muted);margin-top:8px;text-align:right;}
+.prompt .hint{font-size:12px;color:var(--pine);margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);line-height:1.6;}
+.timerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.timerow .t{font-size:11.5px;color:var(--muted);font-weight:700;}
+.timerow button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 12px;font-size:12px;font-family:inherit;color:var(--pine);font-weight:700;cursor:pointer;}
+.ans{margin-top:14px;}
+.ta{width:100%;min-height:150px;border:1px solid var(--line);border-radius:14px;padding:14px;font-family:inherit;font-size:14.5px;line-height:1.7;color:var(--ink);background:var(--card);resize:vertical;outline:none;}
+.ta:focus{border-color:var(--pine);}
+.anbar{display:flex;align-items:center;gap:10px;margin-top:9px;}
+.mic{flex:none;width:50px;height:50px;border-radius:50%;cursor:pointer;font-size:21px;display:grid;place-items:center;background:var(--card2);border:1px solid var(--line);transition:.15s;}
+.mic.live{background:var(--rose);color:#fff;animation:pulse 1.3s infinite;}
+.cnt{font-size:11.5px;color:var(--faint);margin-left:auto;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(166,69,47,.5);}70%{box-shadow:0 0 0 12px rgba(166,69,47,0);}100%{box-shadow:0 0 0 0 rgba(166,69,47,0);}}
+.micnote{font-size:11px;color:var(--faint);margin-top:7px;line-height:1.5;}
+.scorehead{display:flex;align-items:center;gap:16px;padding:18px;border-radius:18px;background:linear-gradient(150deg,var(--card),var(--card2));border:1px solid var(--line);}
+.grade{width:78px;height:78px;flex:none;border-radius:18px;display:grid;place-items:center;font-family:'Shippori Mincho',serif;font-weight:700;color:#fff;font-size:38px;}
+.grade.A{background:linear-gradient(150deg,#2E5A4E,#21413a);}
+.grade.B{background:linear-gradient(150deg,#3E7A66,#2E5A4E);}
+.grade.C{background:linear-gradient(150deg,#BE7129,#9c5a1f);}
+.grade.D{background:linear-gradient(150deg,#A6452F,#823322);}
+.scorehead .tot{font-size:13px;color:var(--muted);}
+.scorehead .tot b{font-family:'Shippori Mincho',serif;font-size:40px;font-weight:700;color:var(--ink);}
+.scorehead .tot b small{font-size:15px;color:var(--muted);font-weight:600;}
+.scorehead .ov{font-size:12.5px;color:var(--ink);line-height:1.55;margin-top:4px;}
+.axis{padding:12px 0;border-top:1px solid var(--line);}
+.axis:first-child{border-top:none;}
+.axis .top{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:7px;}
+.axis .top em{font-style:normal;color:var(--pine);}
+.bar{height:7px;border-radius:99px;background:var(--bg2);overflow:hidden;}
+.bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pine),#3E7A66);}
+.axis .cm{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.6;}
+.axis.key .top em{color:var(--amber);}
+.axis.key .bar>i{background:linear-gradient(90deg,var(--amber),var(--amber-l));}
+.flist h5{font-size:12px;font-weight:700;letter-spacing:.08em;margin:0 0 8px;}
+.flist.good h5{color:var(--pine);}
+.flist.imp h5{color:var(--amber);}
+.flist ul{margin:0;padding-left:18px;}
+.flist li{font-size:13px;line-height:1.65;margin-bottom:6px;}
+.rewrite{margin-top:14px;padding:14px;border-radius:14px;background:#E7EFE9;border:1px solid #cfe0d4;}
+.rewrite h5{font-size:12px;color:var(--pine);margin:0 0 7px;font-weight:700;}
+.rewrite p{margin:0;font-size:13px;line-height:1.7;font-family:'Shippori Mincho',serif;}
+.thread{margin-top:14px;display:flex;flex-direction:column;gap:12px;}
+.bub{max-width:88%;padding:13px 15px;border-radius:16px;font-size:14px;line-height:1.65;}
+.bub.q{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px;}
+.bub.a{align-self:flex-end;background:var(--pine);color:#F4EEDF;border-bottom-right-radius:5px;}
+.bub .who{font-size:10.5px;letter-spacing:.1em;opacity:.7;font-weight:700;margin-bottom:5px;}
+.fb{align-self:flex-start;max-width:92%;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.6;}
+.fb .mini{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-weight:700;font-size:12px;}
+.fb .pill{font-family:'Shippori Mincho',serif;color:#fff;border-radius:8px;padding:1px 9px;font-size:13px;}
+.fb .pill.A{background:#2E5A4E;}.fb .pill.B{background:#3E7A66;}.fb .pill.C{background:#BE7129;}.fb .pill.D{background:#A6452F;}
+.saved{font-size:12px;color:var(--pine);font-weight:700;text-align:center;margin-top:10px;opacity:0;transition:.3s;}
+.saved.show{opacity:1;}
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(244,238,223,.4);border-top-color:#F4EEDF;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px;}
+.spin.dark{border-color:rgba(46,90,78,.25);border-top-color:var(--pine);}
+@keyframes sp{to{transform:rotate(360deg);}}
+.err{font-size:12.5px;color:var(--rose);margin-top:10px;line-height:1.5;text-align:center;}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(252,248,240,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:8px 0 max(8px,env(safe-area-inset-bottom));}
+.nav button{flex:1;border:none;background:transparent;cursor:pointer;font-family:inherit;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:10.5px;font-weight:700;}
+.nav button .ni{font-size:19px;line-height:1;}
+.nav button.on{color:var(--pine);}
+.fade{animation:fade .5s ease both;}
+@keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app"></div></div>
+<nav class="nav" id="nav"></nav>
+
+<script>
+"use strict";
+/* ---------------- config / state ---------------- */
+var EXAM = new Date(2026,5,13);
+var DEFAULT_CORE = "私は親の都合で、これまでの人生で7回の転校を経験してきました。その一つひとつの環境で、私は本当に多くのことを学びました。\n国や地域が変われば、人とのコミュニケーションの取り方も、文化や価値観も大きく異なります。最初は戸惑い、うまく溶け込めないこともありました。\nしかし、その違いを「間違い」ではなく「個性」として理解しようと努力する中で、相手の背景を想像し、自分の伝え方を工夫する力が身についていきました。\nこうした経験を通じて、私はどんな環境でも人とつながることのできるコミュニケーション能力を高めてきたと考えています。";
+
+var S = {
+  view:"home",
+  core: localStorage.getItem("core_content") || DEFAULT_CORE,
+  essay:{ type:"auto", lang:"ja", prompt:null },
+  interview:{ lang:"ja", started:false, thread:[], qcount:0 },
+  timer:{ sec:0, running:false, id:null }
+};
+
+/* ---------------- helpers ---------------- */
+function el(id){ return document.getElementById(id); }
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function days(){ var d=Math.ceil((EXAM-new Date(new Date().toDateString()))/86400000); return d<0?0:d; }
+function mmss(n){ return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
+function gradeFrom(n){ return n>=85?"A":n>=70?"B":n>=55?"C":"D"; }
+
+async function api(path, body){
+  var res = await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!res.ok){ var t=await res.text(); throw new Error(t||("HTTP "+res.status)); }
+  return res.json();
+}
+
+/* ---------------- voice ---------------- */
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+var rec=null, recLive=false;
+function startVoice(lang, onText, onState){
+  if(!SR){ onState("unsupported"); return; }
+  rec = new SR(); rec.lang = lang; rec.continuous=true; rec.interimResults=true;
+  rec.onresult=function(e){ var f=""; for(var i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript; } if(f) onText(f); };
+  rec.onerror=function(e){ recLive=false; onState(e.error==="not-allowed"||e.error==="service-not-allowed"?"denied":"error"); };
+  rec.onend=function(){ recLive=false; onState("end"); };
+  try{ rec.start(); recLive=true; onState("live"); }catch(_){}
+}
+function stopVoice(){ try{ rec&&rec.stop(); }catch(_){ } recLive=false; }
+
+/* attach mic toggle to a textarea+button pair */
+function bindMic(micBtn, ta, lang, noteEl){
+  micBtn.onclick=function(){
+    if(recLive){ stopVoice(); micBtn.classList.remove("live"); micBtn.textContent="🎤"; return; }
+    startVoice(lang==="en"?"en-US":"ja-JP",
+      function(t){ ta.value += (ta.value && !/[。\s]$/.test(ta.value) ? " " : "") + t; updateCount(ta); },
+      function(st){
+        if(st==="live"){ micBtn.classList.add("live"); micBtn.textContent="■"; }
+        else { micBtn.classList.remove("live"); micBtn.textContent="🎤"; }
+        if(st==="unsupported" && noteEl){ noteEl.textContent="この端末では音声認識が使えません。テキストで入力してください。"; noteEl.style.color="var(--rose)"; }
+        if(st==="denied" && noteEl){ noteEl.textContent="マイクが使えませんでした。端末設定でマイクを許可するか、テキストで入力してください。"; noteEl.style.color="var(--rose)"; }
+      });
+  };
+}
+function updateCount(ta){ var c=ta.parentElement.querySelector(".cnt"); if(c) c.textContent=ta.value.length+"字"; }
+
+/* shared answer block markup */
+function answerBlock(lang, ph){
+  return '<div class="ans">'+
+    '<textarea class="ta" id="ansta" placeholder="'+esc(ph)+'"></textarea>'+
+    '<div class="anbar"><button class="mic" id="mic">🎤</button>'+
+    '<span style="font-size:12px;color:var(--muted)" id="micst">声で答える</span>'+
+    '<span class="cnt">0字</span></div>'+
+    '<div class="micnote" id="micnote">※ iPhoneのSafariでは声入力が不安定です。うまく取れない時はキーボードで打ってください。</div>'+
+  '</div>';
+}
+
+/* ---------------- render root ---------------- */
+function render(){
+  var v=S.view, a=el("app");
+  if(v==="home") a.innerHTML = homeView();
+  if(v==="essay") a.innerHTML = essayView();
+  if(v==="interview") a.innerHTML = interviewView();
+  if(v==="core") a.innerHTML = coreView();
+  bind();
+  renderNav();
+  window.scrollTo(0,0);
+}
+function renderNav(){
+  var items=[["home","⌂","ホーム"],["essay","✎","小論文"],["interview","🎙","面接"],["core","❖","中心の文"]];
+  el("nav").innerHTML = items.map(function(it){
+    return '<button data-go="'+it[0]+'" class="'+(S.view===it[0]?"on":"")+'"><span class="ni">'+it[1]+'</span>'+it[2]+'</button>';
+  }).join("");
+  Array.prototype.forEach.call(el("nav").querySelectorAll("button"),function(b){
+    b.onclick=function(){ S.view=b.getAttribute("data-go"); render(); };
+  });
+}
+
+/* ---------------- HOME ---------------- */
+function homeView(){
+  return '<div class="fade">'+
+   '<header class="head"><div class="kicker">KWANSEI GAKUIN SENRI INTERNATIONAL</div>'+
+   '<h1 class="title mincho">編入チャレンジ</h1>'+
+   '<div class="sub">関西学院千里国際中等部・帰国生編入｜面接・小論文 練習ノート</div></header>'+
+   '<div class="count"><div class="lab">本番試験まで</div>'+
+   '<div class="big">'+days()+'<small>日</small></div>'+
+   '<div class="date">2026年6月13日（土）｜あせらず、毎日ひとつずつ。</div></div>'+
+   '<div class="modegrid">'+
+     '<button class="mode" data-go="essay"><span class="ic a mincho">論</span><div><h3>小論文 道場</h3>'+
+       '<p>名言型・イエスノー型のお題を出題。声かテキストで答えると、お題と「自分の中心の話」の<b>整合性</b>を100点満点で採点。</p></div><span class="arr">›</span></button>'+
+     '<button class="mode" data-go="interview"><span class="ic b mincho">面</span><div><h3>面接 シミュレーター</h3>'+
+       '<p>面接官が質問→声かテキストで回答→1問ごとに点数とアドバイス。</p></div><span class="arr">›</span></button>'+
+   '</div>'+
+   '<div class="card fmt" style="margin-top:16px"><h4>出題形式（帰国生入試・2021年以降）</h4>'+
+     '<div class="row"><b>書類選考</b><span>過去2年の成績・願書</span></div>'+
+     '<div class="row"><b>作文エッセイ</b><span>日本語/英語・60分</span></div>'+
+     '<div class="row"><b>受験生 面接</b><span>約20分</span></div>'+
+     '<div class="row"><b>保護者 面接</b><span>約15分</span></div></div>'+
+   '<div class="card" style="margin-top:14px"><h4 style="font-size:12px;letter-spacing:.14em;color:var(--pine);margin:0 0 10px;font-weight:700">作戦のコツ</h4>'+
+     '<p style="font-size:13px;line-height:1.75;color:var(--muted);margin:0">承・転・結は<b style="color:var(--ink)">準備した内容（7回の転校→違いの理解→コミュニケーション力）</b>を活かす。勝負は<b style="color:var(--amber)">「起」</b>——その日のお題と中心の話をどう自然につなぐか。このアプリはそこを一番重く採点します。</p></div>'+
+  '</div>';
+}
+
+/* ---------------- ESSAY ---------------- */
+function essayView(){
+  var e=S.essay;
+  var seg=function(name,opts,cur){ return '<div class="seg" data-seg="'+name+'">'+opts.map(function(o){return '<button data-val="'+o[0]+'" class="'+(cur===o[0]?"on":"")+'">'+o[1]+'</button>';}).join("")+'</div>'; };
+  return '<div class="fade"><div class="ph"><div class="k">小論文 道場</div><h2>お題を出して、整合性を採点</h2>'+
+    '<p>お題の種類と言語を選び、お題を生成。声かテキストで答えたら採点へ。</p></div>'+
+    '<div class="card"><div class="fieldlab">お題の種類</div>'+
+      seg("type",[["auto","おまかせ"],["quote","名言型"],["yn","イエスノー型"]],e.type)+
+      '<div class="fieldlab">言語</div>'+
+      seg("lang",[["ja","日本語"],["en","English"]],e.lang)+
+      '<button class="btn pine" id="genbtn" style="margin-top:16px">お題を生成する</button></div>'+
+    '<div id="promptbox"></div><div id="answerbox"></div><div id="resultbox"></div></div>';
+}
+
+/* ---------------- INTERVIEW ---------------- */
+function interviewView(){
+  var i=S.interview;
+  if(!i.started){
+    var seg='<div class="seg" data-seg="ilang">'+[["ja","日本語"],["en","English"],["mix","ミックス"]].map(function(o){return '<button data-val="'+o[0]+'" class="'+(i.lang===o[0]?"on":"")+'">'+o[1]+'</button>';}).join("")+'</div>';
+    return '<div class="fade"><div class="ph"><div class="k">面接 シミュレーター</div><h2>面接官と1対1で練習</h2>'+
+      '<p>質問に声かテキストで答えると、1問ごとに点数とアドバイスがもらえます。</p></div>'+
+      '<div class="card"><div class="fieldlab">面接の言語</div>'+seg+
+      '<p style="font-size:12px;color:var(--muted);line-height:1.6;margin:12px 0 0">本番の受験生面接は日本語と英語の質疑応答です。「ミックス」で本番に近い練習ができます。</p>'+
+      '<button class="btn pine" id="startbtn" style="margin-top:16px">面接を始める</button></div></div>';
+  }
+  return '<div class="fade"><div class="ph"><div class="k">面接 シミュレーター</div><h2>面接中</h2></div>'+
+    '<div class="thread" id="thread"></div>'+
+    '<div id="intinput" style="margin-top:6px"></div></div>';
+}
+
+/* ---------------- CORE ---------------- */
+function coreView(){
+  return '<div class="fade"><div class="ph"><div class="k">中心の文</div><h2>準備している「中心の内容」</h2>'+
+    '<p>承・転・結で使う固定の内容です。小論文・面接の採点はこの内容との<b>整合性</b>を見ます。</p></div>'+
+    '<div class="card"><p style="font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 12px">「7回の転校 → 文化・国・コミュニケーションの違いを理解 → コミュニケーション力を高めた」という芯を、息子さん自身の言葉に整えていきましょう。</p>'+
+    '<textarea class="ta" id="coreta" style="min-height:260px">'+esc(S.core)+'</textarea>'+
+    '<div class="anbar"><span class="cnt">'+S.core.length+'字</span></div>'+
+    '<button class="btn pine" id="savecore" style="margin-top:12px">保存する</button>'+
+    '<div class="saved" id="saved">✓ 保存しました</div></div></div>';
+}
+
+/* ---------------- bind events per view ---------------- */
+function bind(){
+  // home / nav mode buttons
+  Array.prototype.forEach.call(document.querySelectorAll("[data-go]"),function(b){
+    if(b.parentElement && b.parentElement.id==="nav") return;
+    b.onclick=function(){ S.view=b.getAttribute("data-go"); render(); };
+  });
+  // segmented controls
+  Array.prototype.forEach.call(document.querySelectorAll("[data-seg]"),function(seg){
+    var name=seg.getAttribute("data-seg");
+    Array.prototype.forEach.call(seg.querySelectorAll("button"),function(btn){
+      btn.onclick=function(){
+        var val=btn.getAttribute("data-val");
+        if(name==="type") S.essay.type=val;
+        if(name==="lang") S.essay.lang=val;
+        if(name==="ilang") S.interview.lang=val;
+        seg.querySelectorAll("button").forEach(function(x){x.classList.remove("on");});
+        btn.classList.add("on");
+      };
+    });
+  });
+
+  if(S.view==="essay"){
+    var gb=el("genbtn"); if(gb) gb.onclick=genPrompt;
+    if(S.essay.prompt) drawPrompt();   // keep prompt across nav back
+  }
+  if(S.view==="interview"){
+    var sb=el("startbtn"); if(sb) sb.onclick=startInterview;
+    if(S.interview.started){ drawThread(); drawIntInput(); }
+  }
+  if(S.view==="core"){
+    var ta=el("coreta");
+    ta.oninput=function(){ ta.parentElement.querySelector(".cnt").textContent=ta.value.length+"字"; };
+    el("savecore").onclick=function(){ S.core=ta.value; localStorage.setItem("core_content",ta.value); var s=el("saved"); s.classList.add("show"); setTimeout(function(){s.classList.remove("show");},1800); };
+  }
+}
+
+/* ---------------- essay logic ---------------- */
+function stopTimer(){ if(S.timer.id){ clearInterval(S.timer.id); S.timer.id=null; } S.timer.running=false; }
+function tickTimer(){ var t=el("timeval"); if(t) t.textContent="経過 "+mmss(S.timer.sec); }
+function startTimer(){ stopTimer(); S.timer.running=true; S.timer.id=setInterval(function(){ S.timer.sec++; tickTimer(); },1000); var tb=el("timebtn"); if(tb) tb.textContent="一時停止"; }
+
+async function genPrompt(){
+  var gb=el("genbtn"); gb.disabled=true; gb.innerHTML='<span class="spin"></span>お題を考えています…';
+  el("resultbox").innerHTML=""; S.timer.sec=0; stopTimer();
+  try{
+    var j = await api("/api/prompt",{type:S.essay.type, lang:S.essay.lang});
+    S.essay.prompt=j; drawPrompt(); startTimer();
+  }catch(err){ el("promptbox").innerHTML='<div class="err">お題の取得に失敗しました。もう一度お試しください。</div>'; }
+  finally{ gb.disabled=false; gb.textContent="お題を生成する"; }
+}
+
+function drawPrompt(){
+  var p=S.essay.prompt; if(!p) return;
+  var isYN = p.type==="yn";
+  el("promptbox").innerHTML='<div class="prompt fade">'+
+    '<div class="timerow"><span class="t" id="timeval">経過 '+mmss(S.timer.sec)+'</span>'+
+      '<button id="timebtn">'+(S.timer.running?"一時停止":"計測")+'</button></div>'+
+    '<span class="tag '+(isYN?"yn":"q")+'">'+(isYN?"イエスノー型":"名言型")+'</span>'+
+    '<div class="qt">'+esc(p.prompt)+'</div>'+
+    (p.author?'<div class="auth">— '+esc(p.author)+'</div>':'')+
+    (p.hint?'<div class="hint">💡 '+esc(p.hint)+'</div>':'')+'</div>';
+  el("timebtn").onclick=function(){ if(S.timer.running){ stopTimer(); el("timebtn").textContent="計測"; } else startTimer(); };
+  el("answerbox").innerHTML = answerBlock(S.essay.lang, S.essay.lang==="en"?"Type or speak your essay here…":"ここに小論文を書く／声で答える…")+
+    '<button class="btn amber" id="scorebtn" style="margin-top:12px">この答案を採点する</button><div id="scoreerr"></div>';
+  bindMic(el("mic"), el("ansta"), S.essay.lang, el("micnote"));
+  el("ansta").oninput=function(){ updateCount(el("ansta")); };
+  el("scorebtn").onclick=scoreEssay;
+}
+
+async function scoreEssay(){
+  var ans=el("ansta").value.trim(); if(!ans){ return; }
+  var sb=el("scorebtn"); sb.disabled=true; sb.innerHTML='<span class="spin"></span>採点中…'; el("scoreerr").innerHTML=""; stopTimer();
+  try{
+    var p=S.essay.prompt;
+    var j=await api("/api/score",{prompt:p.prompt, ptype:p.type, author:p.author||"", answer:ans, core:S.core, lang:S.essay.lang});
+    drawResult(j);
+  }catch(err){ el("scoreerr").innerHTML='<div class="err">採点に失敗しました。もう一度お試しください。</div>'; }
+  finally{ sb.disabled=false; sb.textContent="この答案を採点する"; }
+}
+
+function drawResult(r){
+  var axes=(r.axes||[]).map(function(a){
+    var key=a.name&&a.name.indexOf("整合")>=0;
+    var pct=Math.round((a.score/a.max)*100);
+    return '<div class="axis'+(key?" key":"")+'"><div class="top"><span>'+esc(a.name)+(key?" ★最重要":"")+'</span><em>'+a.score+'/'+a.max+'</em></div>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+(a.comment?'<div class="cm">'+esc(a.comment)+'</div>':'')+'</div>';
+  }).join("");
+  var good=(r.good&&r.good.length)?'<div class="flist good"><h5>◎ 良かった点</h5><ul>'+r.good.map(function(g){return '<li>'+esc(g)+'</li>';}).join("")+'</ul></div>':'';
+  var imp=(r.improve&&r.improve.length)?'<div class="flist imp" style="margin-top:14px"><h5>△ 次に直すと伸びる点</h5><ul>'+r.improve.map(function(g){return '<li>'+esc(g)+'</li>';}).join("")+'</ul></div>':'';
+  var rw=r.rewrite_intro?'<div class="rewrite"><h5>このお題なら、こんな「起」がおすすめ</h5><p>'+esc(r.rewrite_intro)+'</p></div>':'';
+  el("resultbox").innerHTML='<div style="margin-top:16px" class="fade">'+
+    '<div class="scorehead"><div class="grade '+r.grade+'">'+r.grade+'</div>'+
+      '<div><div class="tot"><b>'+r.total+'<small> /100</small></b></div><div class="ov">'+esc(r.overall||"")+'</div></div></div>'+
+    '<div class="card" style="margin-top:14px">'+axes+'</div>'+
+    '<div class="card" style="margin-top:14px">'+good+imp+rw+'</div></div>';
+  el("resultbox").scrollIntoView({behavior:"smooth"});
+}
+
+/* ---------------- interview logic ---------------- */
+async function startInterview(){
+  var sb=el("startbtn"); sb.disabled=true; sb.innerHTML='<span class="spin"></span>準備中…';
+  S.interview.thread=[]; S.interview.qcount=0;
+  try{
+    var j=await api("/api/interview",{lang:S.interview.lang, core:S.core, history:[], action:"start", qcount:0});
+    S.interview.started=true; S.interview.thread.push({role:"q",text:j.next_question||"それでは、まず自己紹介をしてください。"}); S.interview.qcount=1;
+    render();
+  }catch(err){ sb.disabled=false; sb.textContent="面接を始める"; alert("開始に失敗しました。通信を確認してもう一度お試しください。"); }
+}
+
+function drawThread(){
+  var t=el("thread"); if(!t) return;
+  t.innerHTML = S.interview.thread.map(function(m){
+    if(m.role==="q") return '<div class="bub q fade"><div class="who">面接官</div>'+esc(m.text)+'</div>';
+    if(m.role==="a") return '<div class="bub a fade"><div class="who">あなた</div>'+esc(m.text)+'</div>';
+    return '<div class="fb fade"><span class="mini">この回答の評価 <span class="pill '+m.grade+'">'+m.grade+'</span> <span style="color:var(--muted)">'+m.score+'/100</span></span><div>'+esc(m.text)+'</div></div>';
+  }).join("");
+  t.scrollIntoView(false);
+}
+
+function drawIntInput(){
+  var box=el("intinput");
+  box.innerHTML = answerBlock(S.interview.lang==="en"?"en":"ja", S.interview.lang==="en"?"Answer here…":"声かテキストで答える…")+
+    '<button class="btn pine" id="sendbtn" style="margin-top:10px">回答する</button>'+
+    '<div id="interr"></div>'+
+    '<button class="btn ghost" id="resetint" style="margin-top:10px">面接をやり直す</button>';
+  bindMic(el("mic"), el("ansta"), S.interview.lang==="en"?"en":"ja", el("micnote"));
+  el("ansta").oninput=function(){ updateCount(el("ansta")); };
+  el("sendbtn").onclick=sendAnswer;
+  el("resetint").onclick=function(){ S.interview.started=false; S.interview.thread=[]; render(); };
+}
+
+async function sendAnswer(){
+  var ta=el("ansta"); var ans=ta.value.trim(); if(!ans) return;
+  var sb=el("sendbtn"); sb.disabled=true; sb.innerHTML='<span class="spin"></span>送信中…'; el("interr").innerHTML="";
+  S.interview.thread.push({role:"a",text:ans}); ta.value=""; updateCount(ta); drawThread();
+  try{
+    var hist = S.interview.thread.filter(function(m){return m.role==="q"||m.role==="a";}).map(function(m){return {role:m.role,text:m.text};});
+    var j=await api("/api/interview",{lang:S.interview.lang, core:S.core, history:hist, action:"answer", qcount:S.interview.qcount});
+    S.interview.thread.push({role:"fb",score:j.score,grade:j.grade||gradeFrom(j.score||0),text:j.feedback||""});
+    if(!j.done && j.next_question){ S.interview.thread.push({role:"q",text:j.next_question}); S.interview.qcount++; }
+    else S.interview.thread.push({role:"q",text:S.interview.lang==="en"?"That’s the end. Great work! 🎉":"面接は以上です。よく頑張りました！🎉"});
+    drawThread();
+  }catch(err){ el("interr").innerHTML='<div class="err">通信に失敗しました。もう一度送ってください。</div>'; }
+  finally{ sb.disabled=false; sb.textContent="回答する"; }
+}
+
+/* ---------------- boot ---------------- */
+render();
+if("serviceWorker" in navigator){ window.addEventListener("load",function(){ navigator.serviceWorker.register("/service-worker.js").catch(function(){}); }); }
+</script>
+</body>
+</html>

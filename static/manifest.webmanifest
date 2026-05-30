@@ -1,0 +1,17 @@
+{
+  "name": "編入チャレンジ｜千里国際 面接・小論文",
+  "short_name": "編入チャレンジ",
+  "description": "関西学院千里国際中等部・帰国生編入のための面接・小論文練習アプリ",
+  "lang": "ja",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F1EADB",
+  "theme_color": "#2E5A4E",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,16 @@
+# Render Blueprint（これがあると Render が設定を自動入力します）
+# 参考: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: henyu-challenge
+    runtime: python
+    region: singapore          # 日本から最も近いリージョン
+    plan: free                 # 無料プラン（しばらく使わないと休止し、次回起動に数十秒かかります）
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true           # GitHub に push すると自動で再デプロイ
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false            # ←キーは Render の画面で安全に入力（コードには書かない）
+      - key: MODEL
+        value: claude-sonnet-4-6   # 安く速くするなら claude-haiku-4-5-20251001
