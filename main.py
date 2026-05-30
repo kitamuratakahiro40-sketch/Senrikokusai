@@ -39,25 +39,32 @@ def _split_addrs(value: str) -> list:
     return [a.strip() for a in value.replace(";", ",").split(",") if a.strip()]
 
 
-def send_log_email(subject: str, text: str) -> None:
+def send_log_email(subject: str, text: str, raise_errors: bool = False) -> None:
     """採点/面接の履歴をメールで送る。失敗してもアプリ本体は止めない。"""
     to_list = _split_addrs(LOG_EMAIL_TO)
     cc_list = _split_addrs(LOG_EMAIL_CC)
     if not (GMAIL_ADDRESS and GMAIL_APP_PASSWORD and to_list):
+        msg = "メール設定が未完了です（GMAIL_ADDRESS / GMAIL_APP_PASSWORD / LOG_EMAIL_TO のいずれかが空）"
+        print(f"[mail] {msg}", flush=True)
+        if raise_errors:
+            raise RuntimeError(msg)
         return
     try:
-        msg = MIMEText(text, "plain", "utf-8")
-        msg["Subject"] = str(Header(subject, "utf-8"))
-        msg["From"] = GMAIL_ADDRESS
-        msg["To"] = ", ".join(to_list)
+        m = MIMEText(text, "plain", "utf-8")
+        m["Subject"] = str(Header(subject, "utf-8"))
+        m["From"] = GMAIL_ADDRESS
+        m["To"] = ", ".join(to_list)
         if cc_list:
-            msg["Cc"] = ", ".join(cc_list)
+            m["Cc"] = ", ".join(cc_list)
         ctx = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=15) as s:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=20) as s:
             s.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
-            s.sendmail(GMAIL_ADDRESS, to_list + cc_list, msg.as_string())
-    except Exception:
-        pass  # ログ送信の失敗で採点・面接を止めない
+            s.sendmail(GMAIL_ADDRESS, to_list + cc_list, m.as_string())
+        print(f"[mail] 送信成功 → to={to_list} cc={cc_list}", flush=True)
+    except Exception as e:
+        print(f"[mail] 送信失敗: {type(e).__name__}: {e}", flush=True)
+        if raise_errors:
+            raise
 
 
 app = FastAPI(title="Henyu Challenge")
@@ -305,6 +312,26 @@ def interview(r: InterviewReq, background_tasks: BackgroundTasks):
 @app.get("/healthz")
 def healthz():
     return {"ok": True, "model": MODEL}
+
+
+@app.get("/api/_mailtest")
+def mailtest():
+    """メール設定の診断用（一時的）。実際に1通送ってみて、結果と原因を返す。"""
+    cfg = {
+        "GMAIL_ADDRESS_set": bool(GMAIL_ADDRESS),
+        "GMAIL_APP_PASSWORD_set": bool(GMAIL_APP_PASSWORD),
+        "GMAIL_APP_PASSWORD_len": len(GMAIL_APP_PASSWORD),
+        "GMAIL_APP_PASSWORD_has_space": (" " in GMAIL_APP_PASSWORD),
+        "LOG_EMAIL_TO_count": len(_split_addrs(LOG_EMAIL_TO)),
+        "LOG_EMAIL_CC_count": len(_split_addrs(LOG_EMAIL_CC)),
+    }
+    try:
+        send_log_email("【テスト】メール設定の確認",
+                       "これは編入チャレンジのメール設定が正しいか確認するテスト送信です。",
+                       raise_errors=True)
+        return {"ok": True, "config": cfg}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}", "config": cfg}
 
 
 # 静的ファイル（フロント）をルートで配信。API ルートの後に mount すること。
