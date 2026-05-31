@@ -180,11 +180,16 @@ def gen_prompt(r: PromptReq):
 @app.post("/api/score")
 def score(r: ScoreReq, background_tasks: BackgroundTasks):
     ptype = "イエスノー型" if r.ptype == "yn" else "名言型"
+    chars = len(r.answer)
     system = f"""あなたは関西学院千里国際中等部・帰国生入試の作文エッセイを採点する経験豊富な指導者です。
 受験生(中3・帰国生)は次の戦略をとっています：「承・転・結」はほぼ固定の【中心となる内容】を使い、「起」でその日のお題と中心内容を結びつける。
 よって最重要の評価軸は『お題との整合性』——与えられたお題に正しく答えられているか、用意した転校・コミュニケーションの話を自然で説得力ある形でお題に結びつけられているか。
 名言型なら名言の意味と経験の結びつき、イエスノー型なら賛成/反対の立場の明確さとその立場を経験で支えているかを見る。
 回答は口頭(音声入力)を書き起こしたものの場合があるので、言い回しの細かな乱れは厳しく見ず、論理と内容を中心に評価すること。
+
+【字数の要件】本番の作文は800字以上が必要です。今回の答案は約{chars}字です。
+- 800字に満たない場合は字数不足として評価に必ず反映する（特に「構成」と「内容の具体性・説得力」を減点）。総評と改善点でも字数不足を具体的に指摘し、あと約{max(0, 800 - chars)}字必要だと伝えること。
+- 800字以上ある場合は字数要件を満たしている旨を一言添える。
 
 【お題】({ptype}) {r.prompt} {('／' + r.author) if r.author else ''}
 
@@ -193,7 +198,7 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
 
 採点は4軸・合計100点：
 - お題との整合性 (40点)
-- 構成（起承転結／立場の明確さ）(20点)
+- 構成（起承転結／立場の明確さ・800字以上の分量）(20点)
 - 内容の具体性・説得力 (25点)
 - 表現・言葉づかい (15点)
 評価ABCDは合計点で A:85-100 / B:70-84 / C:55-69 / D:0-54。
@@ -205,7 +210,8 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
     if not j.get("grade"):
         j["grade"] = grade_from(int(j["total"]))
     axes_txt = " / ".join(f"{a.get('name','')}{a.get('score','')}/{a.get('max','')}" for a in j.get("axes", []))
-    detail = axes_txt
+    char_note = f"{chars}字" + ("（800字以上）" if chars >= 800 else f"（800字まであと{800 - chars}字）")
+    detail = char_note + " ｜ " + axes_txt
     if j.get("good"):
         detail += "｜良:" + "・".join(j["good"])
     if j.get("improve"):
@@ -271,7 +277,7 @@ def interview(r: InterviewReq, background_tasks: BackgroundTasks):
             "score": j.get("score", ""),
             "grade": j.get("grade", ""),
             "comment": j.get("feedback", ""),
-            "detail": f"{r.qcount}問目",
+            "detail": f"{r.qcount}問目 ／ {len(answer)}字",
         })
     return j
 

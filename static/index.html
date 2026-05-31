@@ -257,7 +257,12 @@ function bindMic(micBtn, ta, lang, noteEl){
       });
   };
 }
-function updateCount(ta){ var c=ta.parentElement.querySelector(".cnt"); if(c) c.textContent=ta.value.length+"字"; }
+function updateCount(ta){
+  var c=ta.parentElement.querySelector(".cnt"); if(!c) return;
+  var n=ta.value.length;
+  if(S.view==="essay"){ c.textContent=n+" / 800字"; c.style.color = n>=800 ? "var(--pine)" : "var(--rose)"; c.style.fontWeight="700"; }
+  else { c.textContent=n+"字"; }
+}
 
 /* shared answer block markup */
 function answerBlock(lang, ph){
@@ -475,6 +480,7 @@ function drawPrompt(){
   bindEpChips();
   bindMic(el("mic"), el("ansta"), S.essay.lang, el("micnote"));
   el("ansta").oninput=function(){ updateCount(el("ansta")); };
+  updateCount(el("ansta"));   // 初期表示「0 / 800字」
   el("scorebtn").onclick=scoreEssay;
 }
 
