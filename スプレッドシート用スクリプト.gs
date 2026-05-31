@@ -18,12 +18,20 @@ function doPost(e) {
       sheet.appendRow(HEADERS);
       sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
       sheet.setFrozenRows(1);
+      // 折り返し＋上揃えを列全体に設定（以降の行にも自動適用）
+      sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS.length)
+        .setWrap(true)
+        .setVerticalAlignment('top');
     }
 
     var row = KEYS.map(function (k) {
       return (data[k] !== undefined && data[k] !== null) ? data[k] : '';
     });
     sheet.appendRow(row);
+    // 追記した行も折り返し＋上揃えに
+    sheet.getRange(sheet.getLastRow(), 1, 1, HEADERS.length)
+      .setWrap(true)
+      .setVerticalAlignment('top');
 
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true }))

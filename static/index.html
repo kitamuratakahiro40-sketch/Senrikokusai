@@ -131,6 +131,30 @@ body{
 .nav button.on{color:var(--pine);}
 .fade{animation:fade .5s ease both;}
 @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+/* episode picker chips */
+.epbox{margin-top:14px;padding:14px;border-radius:14px;background:var(--card2);border:1px solid var(--line);}
+.epbox .lab{font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:9px;}
+.epbox .lab b{color:var(--pine);}
+.epchips{display:flex;flex-wrap:wrap;gap:8px;}
+.epchip{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.2;transition:.12s;}
+.epchip.on{background:var(--pine);color:#F4EEDF;border-color:var(--pine);}
+.epchip:active{transform:scale(.96);}
+/* core 5-block editor */
+.epedit{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card);}
+.epedit .eptitle{width:100%;border:none;border-bottom:1px solid var(--line);background:transparent;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--pine);padding:2px 0 8px;outline:none;}
+.epedit textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:11px;font-family:inherit;font-size:13.5px;line-height:1.65;color:var(--ink);background:var(--card2);resize:vertical;outline:none;margin-top:9px;}
+.epedit textarea:focus{border-color:var(--pine);}
+.epedit .epcnt{font-size:11px;color:var(--faint);text-align:right;margin-top:5px;}
+/* past prompts list */
+.pastlist{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.pastitem{text-align:left;border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:11px 13px;font-family:inherit;cursor:pointer;width:100%;display:flex;gap:10px;align-items:flex-start;}
+.pastitem:active{transform:scale(.99);}
+.pastitem .ptag{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.08em;padding:3px 8px;border-radius:99px;margin-top:1px;}
+.pastitem .ptag.q{background:#E7EFE9;color:var(--pine);}
+.pastitem .ptag.yn{background:#F6E6D2;color:var(--amber);}
+.pastitem .ptxt{font-size:12.5px;line-height:1.55;color:var(--ink);}
+.pastempty{font-size:12px;color:var(--faint);text-align:center;padding:12px;}
+.linkbtn{background:none;border:none;color:var(--pine);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:0;}
 </style>
 </head>
 <body>
@@ -143,10 +167,52 @@ body{
 var EXAM = new Date(2026,5,13);
 var DEFAULT_CORE = "私は親の都合で、これまでの人生で7回の転校を経験してきました。その一つひとつの環境で、私は本当に多くのことを学びました。\n国や地域が変われば、人とのコミュニケーションの取り方も、文化や価値観も大きく異なります。最初は戸惑い、うまく溶け込めないこともありました。\nしかし、その違いを「間違い」ではなく「個性」として理解しようと努力する中で、相手の背景を想像し、自分の伝え方を工夫する力が身についていきました。\nこうした経験を通じて、私はどんな環境でも人とつながることのできるコミュニケーション能力を高めてきたと考えています。";
 
+/* 中心の話を5つのエピソードに分割。お題に合わせて選んで組み合わせる。 */
+var DEFAULT_EPISODES = [
+  {title:"① 7回の転校という背景", text:"私は親の都合で、これまでに7回の転校を経験してきました。国や地域が変わるたびに、新しい環境へ飛び込んできました。"},
+  {title:"② 違いに戸惑った経験", text:"最初は言葉や文化、価値観の違いに戸惑い、うまく溶け込めずに孤立してしまったこともありました。"},
+  {title:"③ 違いを「個性」として理解した", text:"その違いを「間違い」ではなく「個性」として理解しようと努力する中で、相手の背景を想像する力が身につきました。"},
+  {title:"④ 伝え方を工夫する力", text:"自分の考えをどう伝えれば届くかを考え、相手に合わせて表現や話し方を工夫できるようになりました。"},
+  {title:"⑤ コミュニケーション力という強み", text:"こうした経験を通じて、どんな環境でも人とつながれるコミュニケーション能力を、自分の強みとして高めてきました。"}
+];
+
+function loadEpisodes(){
+  try{ var s=localStorage.getItem("episodes"); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(_){}
+  // 旧「中心の文」があれば①に残してデータを失わない
+  var eps = DEFAULT_EPISODES.map(function(e){return {title:e.title,text:e.text};});
+  var old = localStorage.getItem("core_content");
+  if(old && old!==DEFAULT_CORE){ eps[0]={title:"① （旧・中心の文。5つに分けてください）", text:old}; }
+  return eps;
+}
+function saveEpisodes(){ localStorage.setItem("episodes", JSON.stringify(S.episodes)); }
+function loadUseIdx(){
+  try{ var s=localStorage.getItem("use_idx"); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(_){}
+  return [0,1,2,3,4];
+}
+function saveUseIdx(){ localStorage.setItem("use_idx", JSON.stringify(S.essay.useIdx)); }
+/* 選択中エピソードを結合（小論文採点用） */
+function coreSelected(){
+  var sel=S.episodes.filter(function(e,i){ return S.essay.useIdx.indexOf(i)>=0 && (e.text||"").trim(); });
+  if(!sel.length) sel=S.episodes.filter(function(e){return (e.text||"").trim();});
+  return sel.map(function(e){return e.text.trim();}).join("\n");
+}
+/* 全エピソード結合（面接用） */
+function coreAll(){ return S.episodes.filter(function(e){return (e.text||"").trim();}).map(function(e){return e.text.trim();}).join("\n"); }
+
+/* 過去のお題（端末に保存） */
+function loadPast(){ try{ var s=localStorage.getItem("past_prompts"); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(_){} return []; }
+function savePast(p){
+  if(!p||!p.prompt) return;
+  var list=loadPast().filter(function(x){ return x.prompt!==p.prompt; });
+  list.unshift({type:p.type,prompt:p.prompt,author:p.author||"",hint:p.hint||""});
+  if(list.length>40) list=list.slice(0,40);
+  localStorage.setItem("past_prompts", JSON.stringify(list));
+}
+
 var S = {
   view:"home",
-  core: localStorage.getItem("core_content") || DEFAULT_CORE,
-  essay:{ type:"auto", lang:"ja", prompt:null },
+  episodes: loadEpisodes(),
+  essay:{ type:"auto", lang:"ja", prompt:null, useIdx: loadUseIdx(), showPast:false },
   interview:{ lang:"ja", started:false, thread:[], qcount:0 },
   timer:{ sec:0, running:false, id:null }
 };
@@ -216,7 +282,7 @@ function render(){
   window.scrollTo(0,0);
 }
 function renderNav(){
-  var items=[["home","⌂","ホーム"],["essay","✎","小論文"],["interview","🎙","面接"],["core","❖","中心の文"]];
+  var items=[["home","⌂","ホーム"],["essay","✎","小論文"],["interview","🎙","面接"],["core","❖","エピソード"]];
   el("nav").innerHTML = items.map(function(it){
     return '<button data-go="'+it[0]+'" class="'+(S.view===it[0]?"on":"")+'"><span class="ni">'+it[1]+'</span>'+it[2]+'</button>';
   }).join("");
@@ -254,13 +320,16 @@ function homeView(){
 function essayView(){
   var e=S.essay;
   var seg=function(name,opts,cur){ return '<div class="seg" data-seg="'+name+'">'+opts.map(function(o){return '<button data-val="'+o[0]+'" class="'+(cur===o[0]?"on":"")+'">'+o[1]+'</button>';}).join("")+'</div>'; };
+  var pastN=loadPast().length;
   return '<div class="fade"><div class="ph"><div class="k">小論文 道場</div><h2>お題を出して、整合性を採点</h2>'+
     '<p>お題の種類と言語を選び、お題を生成。声かテキストで答えたら採点へ。</p></div>'+
     '<div class="card"><div class="fieldlab">お題の種類</div>'+
       seg("type",[["auto","おまかせ"],["quote","名言型"],["yn","イエスノー型"]],e.type)+
       '<div class="fieldlab">言語</div>'+
       seg("lang",[["ja","日本語"],["en","English"]],e.lang)+
-      '<button class="btn pine" id="genbtn" style="margin-top:16px">お題を生成する</button></div>'+
+      '<button class="btn pine" id="genbtn" style="margin-top:16px">お題を生成する</button>'+
+      '<div style="text-align:center;margin-top:12px"><button class="linkbtn" id="pasttoggle">📜 過去のお題から選ぶ'+(pastN?'（'+pastN+'）':'')+'</button></div>'+
+      '<div id="pastbox"></div></div>'+
     '<div id="promptbox"></div><div id="answerbox"></div><div id="resultbox"></div></div>';
 }
 
@@ -282,12 +351,17 @@ function interviewView(){
 
 /* ---------------- CORE ---------------- */
 function coreView(){
-  return '<div class="fade"><div class="ph"><div class="k">中心の文</div><h2>準備している「中心の内容」</h2>'+
-    '<p>承・転・結で使う固定の内容です。小論文・面接の採点はこの内容との<b>整合性</b>を見ます。</p></div>'+
-    '<div class="card"><p style="font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 12px">「7回の転校 → 文化・国・コミュニケーションの違いを理解 → コミュニケーション力を高めた」という芯を、息子さん自身の言葉に整えていきましょう。</p>'+
-    '<textarea class="ta" id="coreta" style="min-height:260px">'+esc(S.core)+'</textarea>'+
-    '<div class="anbar"><span class="cnt">'+S.core.length+'字</span></div>'+
-    '<button class="btn pine" id="savecore" style="margin-top:12px">保存する</button>'+
+  var blocks = S.episodes.map(function(ep,i){
+    return '<div class="epedit" data-ep="'+i+'">'+
+      '<input class="eptitle" data-eptitle="'+i+'" value="'+esc(ep.title).replace(/"/g,"&quot;")+'" placeholder="エピソードの見出し">'+
+      '<textarea data-eptext="'+i+'" placeholder="エピソードの本文…">'+esc(ep.text)+'</textarea>'+
+      '<div class="epcnt">'+(ep.text||"").length+'字</div></div>';
+  }).join("");
+  return '<div class="fade"><div class="ph"><div class="k">エピソード</div><h2>中心の話を5つに分ける</h2>'+
+    '<p>「7回の転校 → 違いの理解 → コミュニケーション力」の芯を、<b>5つの短いエピソード</b>に分けて準備します。小論文では、その日のお題に合うものを<b>3つくらい選んで</b>組み合わせて使います。</p></div>'+
+    '<div class="card"><p style="font-size:12px;color:var(--muted);line-height:1.65;margin:0 0 4px">各枠に、見出しと本文（短め）を入れて整えましょう。空の枠は使われません。</p>'+
+    blocks+
+    '<button class="btn pine" id="savecore" style="margin-top:14px">5つを保存する</button>'+
     '<div class="saved" id="saved">✓ 保存しました</div></div></div>';
 }
 
@@ -315,6 +389,8 @@ function bind(){
 
   if(S.view==="essay"){
     var gb=el("genbtn"); if(gb) gb.onclick=genPrompt;
+    var pt=el("pasttoggle"); if(pt) pt.onclick=function(){ S.essay.showPast=!S.essay.showPast; drawPast(); };
+    drawPast();
     if(S.essay.prompt) drawPrompt();   // keep prompt across nav back
   }
   if(S.view==="interview"){
@@ -322,9 +398,18 @@ function bind(){
     if(S.interview.started){ drawThread(); drawIntInput(); }
   }
   if(S.view==="core"){
-    var ta=el("coreta");
-    ta.oninput=function(){ ta.parentElement.querySelector(".cnt").textContent=ta.value.length+"字"; };
-    el("savecore").onclick=function(){ S.core=ta.value; localStorage.setItem("core_content",ta.value); var s=el("saved"); s.classList.add("show"); setTimeout(function(){s.classList.remove("show");},1800); };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-eptext]"),function(t){
+      t.oninput=function(){ t.parentElement.querySelector(".epcnt").textContent=t.value.length+"字"; };
+    });
+    el("savecore").onclick=function(){
+      S.episodes = S.episodes.map(function(ep,i){
+        var ti=document.querySelector('[data-eptitle="'+i+'"]');
+        var tx=document.querySelector('[data-eptext="'+i+'"]');
+        return { title: ti?ti.value:ep.title, text: tx?tx.value:ep.text };
+      });
+      saveEpisodes();
+      var s=el("saved"); s.classList.add("show"); setTimeout(function(){s.classList.remove("show");},1800);
+    };
   }
 }
 
@@ -338,9 +423,39 @@ async function genPrompt(){
   el("resultbox").innerHTML=""; S.timer.sec=0; stopTimer();
   try{
     var j = await api("/api/prompt",{type:S.essay.type, lang:S.essay.lang});
-    S.essay.prompt=j; drawPrompt(); startTimer();
+    S.essay.prompt=j; savePast(j); S.essay.showPast=false; drawPast(); drawPrompt(); startTimer();
+    var pt=el("pasttoggle"); if(pt){ var n=loadPast().length; pt.textContent="📜 過去のお題から選ぶ"+(n?'（'+n+'）':''); }
   }catch(err){ el("promptbox").innerHTML='<div class="err">お題の取得に失敗しました。もう一度お試しください。</div>'; }
   finally{ gb.disabled=false; gb.textContent="お題を生成する"; }
+}
+
+/* 過去のお題リストの表示・呼び出し */
+function drawPast(){
+  var box=el("pastbox"); if(!box) return;
+  if(!S.essay.showPast){ box.innerHTML=""; return; }
+  var list=loadPast();
+  if(!list.length){ box.innerHTML='<div class="pastempty">まだ過去のお題はありません。お題を生成すると、ここに溜まっていきます。</div>'; return; }
+  var items=list.map(function(p,i){
+    var isYN=p.type==="yn";
+    return '<button class="pastitem" data-past="'+i+'"><span class="ptag '+(isYN?"yn":"q")+'">'+(isYN?"YN":"名言")+'</span>'+
+      '<span class="ptxt">'+esc(p.prompt)+'</span></button>';
+  }).join("");
+  box.innerHTML='<div class="pastlist">'+items+'</div>'+
+    '<div style="text-align:center;margin-top:10px"><button class="linkbtn" id="pastclear" style="color:var(--rose)">履歴をすべて消す</button></div>';
+  Array.prototype.forEach.call(box.querySelectorAll("[data-past]"),function(b){
+    b.onclick=function(){ loadPastPrompt(parseInt(b.getAttribute("data-past"),10)); };
+  });
+  el("pastclear").onclick=function(){
+    if(confirm("過去のお題の履歴をすべて消しますか？")){ localStorage.removeItem("past_prompts"); drawPast();
+      var pt=el("pasttoggle"); if(pt) pt.textContent="📜 過去のお題から選ぶ"; }
+  };
+}
+function loadPastPrompt(idx){
+  var list=loadPast(); var p=list[idx]; if(!p) return;
+  S.essay.prompt={type:p.type,prompt:p.prompt,author:p.author||"",hint:p.hint||""};
+  S.essay.showPast=false; drawPast(); el("resultbox").innerHTML="";
+  S.timer.sec=0; stopTimer(); drawPrompt(); startTimer();
+  el("promptbox").scrollIntoView({behavior:"smooth"});
 }
 
 function drawPrompt(){
@@ -354,11 +469,39 @@ function drawPrompt(){
     (p.author?'<div class="auth">— '+esc(p.author)+'</div>':'')+
     (p.hint?'<div class="hint">💡 '+esc(p.hint)+'</div>':'')+'</div>';
   el("timebtn").onclick=function(){ if(S.timer.running){ stopTimer(); el("timebtn").textContent="計測"; } else startTimer(); };
-  el("answerbox").innerHTML = answerBlock(S.essay.lang, S.essay.lang==="en"?"Type or speak your essay here…":"ここに小論文を書く／声で答える…")+
+  el("answerbox").innerHTML = episodePicker()+
+    answerBlock(S.essay.lang, S.essay.lang==="en"?"Type or speak your essay here…":"ここに小論文を書く／声で答える…")+
     '<button class="btn amber" id="scorebtn" style="margin-top:12px">この答案を採点する</button><div id="scoreerr"></div>';
+  bindEpChips();
   bindMic(el("mic"), el("ansta"), S.essay.lang, el("micnote"));
   el("ansta").oninput=function(){ updateCount(el("ansta")); };
   el("scorebtn").onclick=scoreEssay;
+}
+
+/* お題に合わせて使うエピソードを選ぶチップ */
+function episodePicker(){
+  var avail=S.episodes.filter(function(e){return (e.text||"").trim();});
+  if(!avail.length){
+    return '<div class="epbox"><div class="lab">使うエピソード</div><div style="font-size:12px;color:var(--faint)">「エピソード」画面で中心の話を登録すると、ここでお題に合うものを選べます。</div></div>';
+  }
+  var chips=S.episodes.map(function(ep,i){
+    if(!(ep.text||"").trim()) return "";
+    var on=S.essay.useIdx.indexOf(i)>=0;
+    return '<button class="epchip'+(on?" on":"")+'" data-ep="'+i+'">'+esc(ep.title)+'</button>';
+  }).join("");
+  return '<div class="epbox"><div class="lab">このお題で使うエピソード <b>（お題に合うものを3つくらい）</b></div>'+
+    '<div class="epchips">'+chips+'</div></div>';
+}
+function bindEpChips(){
+  Array.prototype.forEach.call(document.querySelectorAll(".epchip"),function(c){
+    c.onclick=function(){
+      var i=parseInt(c.getAttribute("data-ep"),10);
+      var pos=S.essay.useIdx.indexOf(i);
+      if(pos>=0){ S.essay.useIdx.splice(pos,1); c.classList.remove("on"); }
+      else { S.essay.useIdx.push(i); c.classList.add("on"); }
+      saveUseIdx();
+    };
+  });
 }
 
 async function scoreEssay(){
@@ -366,7 +509,7 @@ async function scoreEssay(){
   var sb=el("scorebtn"); sb.disabled=true; sb.innerHTML='<span class="spin"></span>採点中…'; el("scoreerr").innerHTML=""; stopTimer();
   try{
     var p=S.essay.prompt;
-    var j=await api("/api/score",{prompt:p.prompt, ptype:p.type, author:p.author||"", answer:ans, core:S.core, lang:S.essay.lang});
+    var j=await api("/api/score",{prompt:p.prompt, ptype:p.type, author:p.author||"", answer:ans, core:coreSelected(), lang:S.essay.lang});
     drawResult(j);
   }catch(err){ el("scoreerr").innerHTML='<div class="err">採点に失敗しました。もう一度お試しください。</div>'; }
   finally{ sb.disabled=false; sb.textContent="この答案を採点する"; }
@@ -395,7 +538,7 @@ async function startInterview(){
   var sb=el("startbtn"); sb.disabled=true; sb.innerHTML='<span class="spin"></span>準備中…';
   S.interview.thread=[]; S.interview.qcount=0;
   try{
-    var j=await api("/api/interview",{lang:S.interview.lang, core:S.core, history:[], action:"start", qcount:0});
+    var j=await api("/api/interview",{lang:S.interview.lang, core:coreAll(), history:[], action:"start", qcount:0});
     S.interview.started=true; S.interview.thread.push({role:"q",text:j.next_question||"それでは、まず自己紹介をしてください。"}); S.interview.qcount=1;
     render();
   }catch(err){ sb.disabled=false; sb.textContent="面接を始める"; alert("開始に失敗しました。通信を確認してもう一度お試しください。"); }
@@ -429,7 +572,7 @@ async function sendAnswer(){
   S.interview.thread.push({role:"a",text:ans}); ta.value=""; updateCount(ta); drawThread();
   try{
     var hist = S.interview.thread.filter(function(m){return m.role==="q"||m.role==="a";}).map(function(m){return {role:m.role,text:m.text};});
-    var j=await api("/api/interview",{lang:S.interview.lang, core:S.core, history:hist, action:"answer", qcount:S.interview.qcount});
+    var j=await api("/api/interview",{lang:S.interview.lang, core:coreAll(), history:hist, action:"answer", qcount:S.interview.qcount});
     S.interview.thread.push({role:"fb",score:j.score,grade:j.grade||gradeFrom(j.score||0),text:j.feedback||""});
     if(!j.done && j.next_question){ S.interview.thread.push({role:"q",text:j.next_question}); S.interview.qcount++; }
     else S.interview.thread.push({role:"q",text:S.interview.lang==="en"?"That’s the end. Great work! 🎉":"面接は以上です。よく頑張りました！🎉"});
