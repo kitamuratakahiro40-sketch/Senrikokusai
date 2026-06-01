@@ -5,24 +5,55 @@
  */
 
 // 表の見出し（左から）と、アプリから届くデータのキー（順番を合わせる）
-var HEADERS = ['日時', '種別', '言語', 'お題・質問', '回答', '点数', '評価', 'コメント', '詳細'];
-var KEYS    = ['datetime', 'type', 'lang', 'topic', 'answer', 'score', 'grade', 'comment', 'detail'];
+var HEADERS = ['日時', '種別', '言語', 'お題・質問', '回答', '点数', '評価', 'コメント', '詳細', '模範回答'];
+var KEYS    = ['datetime', 'type', 'lang', 'topic', 'answer', 'score', 'grade', 'comment', 'detail', 'model_answer'];
+
+function ensureHeaders(sheet) {
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(HEADERS);
+    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  } else {
+    var current = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length)).getValues()[0];
+    HEADERS.forEach(function (h, i) {
+      if (current[i] !== h) sheet.getRange(1, i + 1).setValue(h).setFontWeight('bold');
+    });
+  }
+  sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS.length)
+    .setWrap(true)
+    .setVerticalAlignment('top');
+}
+
+function updateModelAnswer(sheet, data) {
+  ensureHeaders(sheet);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return false;
+  var rows = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  for (var i = rows.length - 1; i >= 0; i--) {
+    var topic = rows[i][3];
+    var answer = rows[i][4];
+    if (topic === data.topic && answer === data.answer) {
+      sheet.getRange(i + 2, HEADERS.length).setValue(data.model_answer || '')
+        .setWrap(true)
+        .setVerticalAlignment('top');
+      return true;
+    }
+  }
+  return false;
+}
 
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    if (data.action === 'update_model_answer') {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, updated: updateModelAnswer(sheet, data) }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     // まだ何も無ければ見出し行を作る
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(HEADERS);
-      sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold');
-      sheet.setFrozenRows(1);
-      // 折り返し＋上揃えを列全体に設定（以降の行にも自動適用）
-      sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS.length)
-        .setWrap(true)
-        .setVerticalAlignment('top');
-    }
+    ensureHeaders(sheet);
 
     var row = KEYS.map(function (k) {
       return (data[k] !== undefined && data[k] !== null) ? data[k] : '';

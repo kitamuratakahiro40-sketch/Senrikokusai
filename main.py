@@ -240,7 +240,7 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
 
 
 @app.post("/api/model-answer")
-def model_answer(r: ModelAnswerReq):
+def model_answer(r: ModelAnswerReq, background_tasks: BackgroundTasks):
     ptype = "イエスノー型" if r.ptype == "yn" else "名言型"
     lang_label = "英語" if r.lang == "en" else "日本語"
     stance_note = "イエスノー型では、賛成/反対の立場を最初から明確にしてください。" if r.ptype == "yn" else "名言型では、名言の意味を自分の経験と自然に結びつけてください。"
@@ -271,6 +271,15 @@ def model_answer(r: ModelAnswerReq):
         raise HTTPException(502, "模範回答を作成できませんでした。もう一度お試しください。")
     if not isinstance(j.get("points"), list):
         j["points"] = []
+    model_text = j.get("answer", "")
+    if j.get("points"):
+        model_text += "\n\n真似したいポイント:\n" + "\n".join(f"- {p}" for p in j["points"])
+    background_tasks.add_task(send_to_sheet, {
+        "action": "update_model_answer",
+        "topic": (r.prompt + (f"（{r.author}）" if r.author else "")),
+        "answer": r.answer,
+        "model_answer": model_text,
+    })
     return j
 
 
