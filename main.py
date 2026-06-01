@@ -108,18 +108,36 @@ BANK = {
         "quote": [
             {"prompt": "「失敗とは、より賢く再挑戦するためのよい機会である。」この言葉について、あなた自身の考えや経験を書きなさい。", "author": "ヘンリー・フォード"},
             {"prompt": "「大きなことができないなら、小さなことを大きな心で行いなさい。」この言葉に関連するあなたの考えや経験を書きなさい。", "author": "ナポレオン・ヒル"},
+            {"prompt": "「多様性とは、招待されること。包摂とは、踊りに誘われること。」この言葉について、あなた自身の経験をもとに考えを書きなさい。", "author": "ヴァーナ・マイヤーズ"},
+            {"prompt": "「教育とは、世界を変えるために使える最も強力な武器である。」この言葉について、あなたの経験や将来の目標と結びつけて書きなさい。", "author": "ネルソン・マンデラ"},
+            {"prompt": "「人を理解するには、その人の立場に立って考えなければならない。」この考えについて、あなた自身の経験をもとに書きなさい。", "author": "ハーパー・リー"},
+            {"prompt": "「変化を恐れるのではなく、変化から学びなさい。」この言葉について、あなたの経験をもとに考えを書きなさい。", "author": "作者不詳"},
+            {"prompt": "「言葉は人と人を分ける壁にも、つなぐ橋にもなる。」この言葉について、あなた自身の経験をもとに書きなさい。", "author": "作者不詳"},
+            {"prompt": "「本当の強さとは、違いを受け入れながら自分らしさを失わないことである。」この言葉について、あなたの考えを書きなさい。", "author": "作者不詳"},
         ],
         "yn": [
             {"prompt": "「外国で暮らす経験は、誰にとっても価値がある。」この意見に賛成ですか、反対ですか。立場を明確にして理由を書きなさい。", "author": ""},
             {"prompt": "「環境が変わることは、人を成長させる。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「学校では、同じ考えの友人よりも、自分と違う考えの友人から多くを学べる。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「コミュニケーションで一番大切なのは、正しい言葉よりも相手を理解しようとする姿勢である。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「便利な翻訳アプリがあれば、外国語を学ぶ必要は少なくなる。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「中学生は、失敗を避けるよりも新しいことに挑戦する方が大切である。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「海外経験がある人は、その経験を周りの人のために活かす責任がある。」この意見に賛成ですか、反対ですか。", "author": ""},
+            {"prompt": "「リーダーに必要なのは、人前で話す力よりも、人の話を聞く力である。」この意見に賛成ですか、反対ですか。", "author": ""},
         ],
     },
     "en": {
         "quote": [
             {"prompt": "“If you cannot do great things, do small things in a great way.” Write about your own thoughts and experiences that connect to this quote.", "author": "Napoleon Hill"},
+            {"prompt": "“Education is the most powerful weapon which you can use to change the world.” Write about your thoughts and experiences connected to this quote.", "author": "Nelson Mandela"},
+            {"prompt": "“Change is not something to fear, but something to learn from.” Write about your own experience connected to this idea.", "author": ""},
+            {"prompt": "“Words can become walls, but they can also become bridges.” Write about your thoughts and experiences connected to this quote.", "author": ""},
         ],
         "yn": [
             {"prompt": "“Living abroad is valuable for everyone.” Do you agree or disagree? State your position and give specific reasons.", "author": ""},
+            {"prompt": "“Students learn more from classmates who think differently from them than from classmates who think the same way.” Do you agree or disagree?", "author": ""},
+            {"prompt": "“The most important part of communication is not perfect language, but the effort to understand others.” Do you agree or disagree?", "author": ""},
+            {"prompt": "“Middle school students should try new things even if they might fail.” Do you agree or disagree?", "author": ""},
         ],
     },
 }
@@ -129,6 +147,7 @@ BANK = {
 class PromptReq(BaseModel):
     type: str = "auto"     # auto | quote | yn
     lang: str = "ja"       # ja | en
+    avoid: list[str] = []
 
 
 class ScoreReq(BaseModel):
@@ -167,10 +186,15 @@ class InterviewReq(BaseModel):
 def gen_prompt(r: PromptReq):
     want = r.type if r.type in ("quote", "yn") else random.choice(("quote", "yn"))
     lang_word = "英語" if r.lang == "en" else "日本語"
+    avoid = "\n".join(f"- {p[:180]}" for p in r.avoid[:40] if p)
+    avoid_note = f"\n最近出したお題（これらと同じ名言・同じ主張・同じ切り口は避ける）:\n{avoid}\n" if avoid else ""
     system = f"""あなたは関西学院千里国際中等部・帰国生入試の作文エッセイの作問者です。中学3年生(帰国生)向けに、本番と同形式のお題を1問だけ作ります。
 - quote(名言型): 実在の人物の名言を引用し、その名言に関連する自分の考えや経験を書かせる。
 - yn(イエスノー型): ある意見を1文で示し、賛成/反対の立場を明確にして理由を書かせる。
 出力は {lang_word} で。難しすぎず、中学生が自分の経験で書ける普遍的なテーマにすること。
+テーマは毎回変えること。例: 失敗、挑戦、異文化理解、言葉、友情、リーダーシップ、聞く力、テクノロジー、学校生活、将来の貢献、多様性、自己表現。
+帰国生の「転校経験・文化差・コミュニケーション力」につなげやすいが、露骨に同じ話題へ誘導しすぎないこと。
+{avoid_note}
 必ず次のJSONのみを出力（説明や```は禁止）:
 {{"type":"{want}","prompt":"お題本文","author":"名言型なら人物名・それ以外は空文字","hint":"書き出し(起)で自分の経験につなぐためのヒントを1文"}}"""
     try:
@@ -180,7 +204,8 @@ def gen_prompt(r: PromptReq):
             return j
     except HTTPException:
         pass
-    pick = random.choice(BANK[r.lang][want])
+    candidates = [p for p in BANK[r.lang][want] if p["prompt"] not in set(r.avoid)]
+    pick = random.choice(candidates or BANK[r.lang][want])
     return {"type": want, "prompt": pick["prompt"], "author": pick["author"],
             "hint": "書き出しで、お題と自分の経験を一言でつなげましょう。" if r.lang == "ja"
             else "Connect the theme to your own experience in the opening."}

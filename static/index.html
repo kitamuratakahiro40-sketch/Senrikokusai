@@ -432,7 +432,8 @@ async function genPrompt(){
   var gb=el("genbtn"); gb.disabled=true; gb.innerHTML='<span class="spin"></span>お題を考えています…';
   el("resultbox").innerHTML=""; S.timer.sec=0; stopTimer();
   try{
-    var j = await api("/api/prompt",{type:S.essay.type, lang:S.essay.lang});
+    var avoid = loadPast().map(function(p){ return p.prompt; }).slice(0,40);
+    var j = await api("/api/prompt",{type:S.essay.type, lang:S.essay.lang, avoid:avoid});
     S.essay.prompt=j; savePast(j); S.essay.showPast=false; drawPast(); drawPrompt(); startTimer();
     var pt=el("pasttoggle"); if(pt){ var n=loadPast().length; pt.textContent="📜 過去のお題から選ぶ"+(n?'（'+n+'）':''); }
   }catch(err){ el("promptbox").innerHTML='<div class="err">お題の取得に失敗しました。もう一度お試しください。</div>'; }
