@@ -1,6 +1,6 @@
 // PWAシェルキャッシュ。HTML(index)は「ネット優先」で常に最新を取りに行く（更新が即反映される）。
 // その他のアセットは「キャッシュ優先」。AI呼び出し(/api)はキャッシュせず素通し。
-const CACHE = "henyu-v4";
+const CACHE = "henyu-v5";
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png", "/icon-apple-180.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

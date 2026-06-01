@@ -110,6 +110,11 @@ body{
 .rewrite{margin-top:14px;padding:14px;border-radius:14px;background:#E7EFE9;border:1px solid #cfe0d4;}
 .rewrite h5{font-size:12px;color:var(--pine);margin:0 0 7px;font-weight:700;}
 .rewrite p{margin:0;font-size:13px;line-height:1.7;font-family:'Shippori Mincho',serif;}
+.modelans{margin-top:14px;padding:16px;border-radius:14px;background:var(--card);border:1px solid var(--line);}
+.modelans h5{font-size:12px;color:var(--pine);margin:0 0 8px;font-weight:700;letter-spacing:.06em;}
+.modelans .body{font-size:13.5px;line-height:1.85;white-space:pre-wrap;font-family:'Shippori Mincho',serif;}
+.modelans ul{margin:12px 0 0;padding-left:18px;}
+.modelans li{font-size:12.5px;line-height:1.6;margin-bottom:5px;color:var(--muted);}
 .thread{margin-top:14px;display:flex;flex-direction:column;gap:12px;}
 .bub{max-width:88%;padding:13px 15px;border-radius:16px;font-size:14px;line-height:1.65;}
 .bub.q{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:5px;}
@@ -535,8 +540,38 @@ function drawResult(r){
     '<div class="scorehead"><div class="grade '+r.grade+'">'+r.grade+'</div>'+
       '<div><div class="tot"><b>'+r.total+'<small> /100</small></b></div><div class="ov">'+esc(r.overall||"")+'</div></div></div>'+
     '<div class="card" style="margin-top:14px">'+axes+'</div>'+
-    '<div class="card" style="margin-top:14px">'+good+imp+rw+'</div></div>';
+    '<div class="card" style="margin-top:14px">'+good+imp+rw+
+      '<button class="btn pine" id="modelbtn" style="margin-top:14px">模範回答を見る</button>'+
+      '<div id="modelerr"></div><div id="modelbox"></div></div></div>';
+  el("modelbtn").onclick=genModelAnswer;
   el("resultbox").scrollIntoView({behavior:"smooth"});
+}
+
+async function genModelAnswer(){
+  var mb=el("modelbtn"); if(!mb) return;
+  var ansEl=el("ansta");
+  var p=S.essay.prompt;
+  mb.disabled=true; mb.innerHTML='<span class="spin"></span>模範回答を作っています…';
+  el("modelerr").innerHTML="";
+  try{
+    var j=await api("/api/model-answer",{
+      prompt:p.prompt,
+      ptype:p.type,
+      author:p.author||"",
+      answer:ansEl?ansEl.value.trim():"",
+      core:coreSelected(),
+      lang:S.essay.lang
+    });
+    var points=(j.points&&j.points.length)?'<ul>'+j.points.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>':'';
+    el("modelbox").innerHTML='<div class="modelans fade"><h5>'+esc(j.title||"模範回答")+'</h5>'+
+      '<div class="body">'+esc(j.answer||"")+'</div>'+points+'</div>';
+    mb.textContent="模範回答をもう一度作る";
+  }catch(err){
+    el("modelerr").innerHTML='<div class="err">模範回答の作成に失敗しました。もう一度お試しください。</div>';
+    mb.textContent="模範回答を見る";
+  }finally{
+    mb.disabled=false;
+  }
 }
 
 /* ---------------- interview logic ---------------- */

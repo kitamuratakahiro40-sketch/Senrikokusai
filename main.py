@@ -140,6 +140,15 @@ class ScoreReq(BaseModel):
     lang: str = "ja"
 
 
+class ModelAnswerReq(BaseModel):
+    prompt: str
+    ptype: str = "quote"   # quote | yn
+    author: str = ""
+    answer: str = ""
+    core: str
+    lang: str = "ja"
+
+
 class Turn(BaseModel):
     role: str  # "q" | "a"
     text: str
@@ -227,6 +236,41 @@ def score(r: ScoreReq, background_tasks: BackgroundTasks):
         "comment": j.get("overall", ""),
         "detail": detail,
     })
+    return j
+
+
+@app.post("/api/model-answer")
+def model_answer(r: ModelAnswerReq):
+    ptype = "イエスノー型" if r.ptype == "yn" else "名言型"
+    lang_label = "英語" if r.lang == "en" else "日本語"
+    stance_note = "イエスノー型では、賛成/反対の立場を最初から明確にしてください。" if r.ptype == "yn" else "名言型では、名言の意味を自分の経験と自然に結びつけてください。"
+    system = f"""あなたは関西学院千里国際中等部・帰国生入試の作文エッセイを指導する先生です。
+受験生(中3・帰国生)が次のお題で練習したあとに読む、模範回答を作ってください。
+
+条件:
+- 出力は{lang_label}。
+- 中学生本人が本番で書ける自然な文体にする。
+- 準備している中心内容「7回の転校→違いの理解→コミュニケーション力」を使う。
+- ただし、丸暗記の文章ではなく、その日のお題に合わせた「起」で自然につなぐ。
+- {stance_note}
+- 日本語なら800字以上、英語なら300〜450 words程度を目安にする。
+- 最後は千里国際で学びたい姿勢につなげる。
+
+【お題】({ptype}) {r.prompt} {('／' + r.author) if r.author else ''}
+
+【受験生が準備している中心となる内容】
+{r.core}
+
+必ず次のJSONのみ（```や前後の文は禁止）:
+{{"title":"短い題名","answer":"模範回答本文","points":["真似したいポイント1","真似したいポイント2","真似したいポイント3"]}}"""
+    user = "このお題の模範回答を作ってください。"
+    if r.answer:
+        user += f"\n\n参考: 受験生が先ほど書いた答案\n{r.answer}"
+    j = parse_json(ask(system, [{"role": "user", "content": user}]))
+    if not j or not j.get("answer"):
+        raise HTTPException(502, "模範回答を作成できませんでした。もう一度お試しください。")
+    if not isinstance(j.get("points"), list):
+        j["points"] = []
     return j
 
 
